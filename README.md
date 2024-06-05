@@ -29,6 +29,12 @@ This repository contains Terraform code to set up an Azure honeypot environment 
 
 The `variables.tf` file contains the default values for various resources. You can modify these values according to your requirements. For example, you can change the resource group name, location, virtual machine size, and more.
 
+## Installing T-Pot (Telekom Honeypot)
+SSH into the machine and run the following commands:
+To install T-Pot on the provisioned Ubuntu virtual machine, follow the instructions provided in the official T-Pot repository:
+
+https://github.com/telekom-security/tpotce?tab=readme-ov-file#get-and-install-t-pot
+
 ## Cleanup
 
 To remove all the created resources, run `terraform destroy` and confirm by entering `yes`.
