@@ -117,7 +117,9 @@ resource "azurerm_public_ip" "public_ip" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Dynamic"
-
+  timeouts {
+    create = "5m"
+  }
 }
 
 # Create a Debian virtual machine
@@ -147,25 +149,13 @@ resource "azurerm_linux_virtual_machine" "vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "24.04-LTS"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
-    provisioner "remote-exec" {
-    inline = [
-      "echo 'Connected to the Azure Linux VM!'",
-      "echo 'Running additional commands...'",
-      "# Add your commands here"
-    ]
-
-    connection {
-      type        = "ssh"
-      user        = var.admin_username
-      private_key = file("~/.ssh/id_rsa")
-      host        = azurerm_public_ip.public_ip.ip_address
-    }
-  }
-
-
 }
-
+/* Run this command after you connnect to the vm
+git clone https://github.com/telekom-security/tpotce
+cd tpotce
+./install.sh
+ */
 
