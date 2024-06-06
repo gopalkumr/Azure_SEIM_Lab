@@ -29,6 +29,10 @@ resource "azurerm_network_security_group" "nsg" {
   name                = var.nsg_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  timeouts {
+    create = "2m"
+    delete = "2m"
+  }
 }
 resource "azurerm_network_security_rule" "ssh" {
   name                       = "SSH"
@@ -99,8 +103,10 @@ resource "azurerm_network_interface" "nic" {
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.public_ip.id
-
-}
+  }
+  timeouts {
+    delete = "2m"
+  }
 }
 resource "azurerm_network_interface_security_group_association" "attach_nsg" {
   network_interface_id      = azurerm_network_interface.nic.id
@@ -117,23 +123,20 @@ resource "azurerm_public_ip" "public_ip" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Dynamic"
-  timeouts {
-    create = "5m"
-  }
 }
 
-# Create a Debian virtual machine
+# Create a Ubuntu virtual machine
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = var.vm_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = var.vm_size
   admin_username      = var.admin_username
-  
 
   network_interface_ids = [
     azurerm_network_interface.nic.id,
   ]
+
   admin_ssh_key {
     username   = var.admin_username
     public_key = file("~/.ssh/id_rsa.pub")
@@ -143,8 +146,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
-  computer_name  = var.vm_name
 
+  computer_name  = var.vm_name
 
   source_image_reference {
     publisher = "Canonical"
@@ -152,10 +155,41 @@ resource "azurerm_linux_virtual_machine" "vm" {
     sku       = "22_04-lts-gen2"
     version   = "latest"
   }
+  depends_on = [ azurerm_network_interface_security_group_association.attach_nsg, azurerm_public_ip.public_ip]
 }
-/* Run this command after you connnect to the vm
-git clone https://github.com/telekom-security/tpotce
-cd tpotce
-./install.sh
- */
+#Created an installer for tpotce honeypot so now it is fully automated
+resource "null_resource" "install_tpotce_honeypot" {
+  depends_on = [
+    azurerm_linux_virtual_machine.vm,
+    azurerm_public_ip.public_ip,
+    azurerm_network_interface.nic,
+    azurerm_network_interface_security_group_association.attach_nsg
+  ]
 
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get update -y",
+      "sudo apt-get install -y git",
+      "git clone https://github.com/telekom-security/tpotce",
+      "cd tpotce",
+      "./install.sh <<EOF",
+      "y",
+      "h",
+      "azureuser",
+      "y",
+      "hellohoney",
+      "hellohoney",
+      "EOF",
+      "sudo reboot"
+      
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "azureuser"
+      private_key = file("~/.ssh/id_rsa")
+      host        = azurerm_public_ip.public_ip.ip_address
+    }
+  }
+}
+ 
