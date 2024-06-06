@@ -14,3 +14,11 @@ output "ssh_after_restart_honey_install" {
   value = "ssh -p 64295 ${var.admin_username}@${azurerm_public_ip.public_ip.ip_address}"
   description = "After thes succussful run of the script restart the machine and then run this command"
 }
+output "webserverlogin" {
+  value = "https://${azurerm_public_ip.public_ip.ip_address}:64297"
+  description = "web login for honeypot"
+}
+output "loginwebserver" {
+  value = "username ${var.admin_username} and the password is ${var.admin_password}"
+  
+}
