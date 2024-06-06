@@ -63,4 +63,21 @@ variable "admin_username" {
   type        = string
   default     = "azureuser"
 }
+variable "admin_password" {
+  description = "password for login to honeypot"
+  type = string
+  default = "hellohoney"
+}
+variable "log_analytics_workspace_name" {
+  description = "The name of the Log Analytics Workspace."
+  type        = string
+  default     = "honeypot-log-workspace"
+}
+
+variable "log_analytics_workspace_sku" {
+  description = "The SKU (pricing level) of the Log Analytics Workspace."
+  type        = string
+  default     = "PerGB2018"
+}
+
 
