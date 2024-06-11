@@ -1,6 +1,6 @@
 # Azure SEIM Lab
 ---
-This repository contains Terraform code to set up an Azure honeypot environment for Security Information and Event Management (SIEM) lab purposes. The code provisions an Ubuntu virtual machine with various open ports to simulate a vulnerable system and attract potential attackers.
+This repository contains Terraform code to set up an Azure honeypot environment for Security Information and Event Management (SIEM) lab purposes. The code provisions an Ubuntu virtual machine with various open ports to simulate a vulnerable system and attract potential attackers. [video guide](https://www.youtube.com/watch?v=WRB1-Lp6A8w)
 
 ## Prerequisites
 ---
