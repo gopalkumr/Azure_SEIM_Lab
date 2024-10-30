@@ -19,6 +19,12 @@ This repository contains Terraform code to set up an Azure honeypot environment 
 
 3. Copy your SSH public key to the `~/.ssh/id_rsa.pub` path or update the `public_key` line in `main.tf` with the path to your public key.
 
+3.1 If you don't have an SSH key pair, you can generate one using the following command:
+    ```
+    ssh-keygen -t rsa -b 4096 -C "
+    ```
+3.2 go to the variables.tf file and update the subscription_id.
+
 4. Run `terraform init` to initialize the Terraform working directory.
 
 5. Run `terraform apply` to create the Azure resources. Review the execution plan and enter `yes` to confirm.
