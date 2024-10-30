@@ -1,3 +1,9 @@
+variable "subscription_id"{
+  description = "The subscription ID to use."
+  type        = string
+  default     = "82bddac8-c571-46dc-b8bd-83eafd5475c7"
+}
+
 variable "resource_group_name" {
   description = "The name of the resource group."
   type        = string
@@ -7,7 +13,7 @@ variable "resource_group_name" {
 variable "location" {
   description = "The location where resources will be created."
   type        = string
-  default     = "East US"
+  default     = "Central India"
 }
 
 variable "vnet_name" {

@@ -1,5 +1,6 @@
 provider "azurerm" {
   features {}
+  subscription_id = var.subscription_id
 }
 
 # Create a resource group
@@ -34,6 +35,8 @@ resource "azurerm_network_security_group" "nsg" {
     delete = "2m"
   }
 }
+
+# Define security rules for the NSG
 resource "azurerm_network_security_rule" "ssh" {
   name                       = "SSH"
   priority                   = 1001
@@ -46,8 +49,8 @@ resource "azurerm_network_security_rule" "ssh" {
   destination_address_prefix = "*"
   resource_group_name        = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.nsg.name
-  
 }
+
 resource "azurerm_network_security_rule" "honeypotWebServer" {
   name                        = "honeypotWebServer"
   priority                    = 1002
@@ -60,8 +63,8 @@ resource "azurerm_network_security_rule" "honeypotWebServer" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.nsg.name
-  
 }
+
 resource "azurerm_network_security_rule" "honeypotRuleSSH" {
   name                        = "honeypotSSH"
   priority                    = 1003
@@ -74,8 +77,8 @@ resource "azurerm_network_security_rule" "honeypotRuleSSH" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.nsg.name
-  
 }
+
 resource "azurerm_network_security_rule" "honeypotRule" {
   name                        = "honeypotALL"
   priority                    = 1004
@@ -88,7 +91,6 @@ resource "azurerm_network_security_rule" "honeypotRule" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.nsg.name
-  
 }
 
 # Create a network interface
@@ -96,7 +98,6 @@ resource "azurerm_network_interface" "nic" {
   name                = var.nic_name
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  
 
   ip_configuration {
     name                          = "internal"
@@ -108,6 +109,7 @@ resource "azurerm_network_interface" "nic" {
     delete = "2m"
   }
 }
+
 resource "azurerm_network_interface_security_group_association" "attach_nsg" {
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
@@ -116,13 +118,13 @@ resource "azurerm_network_interface_security_group_association" "attach_nsg" {
   }
 }
 
-
 # Create a public IP
 resource "azurerm_public_ip" "public_ip" {
   name                = "honeyPotPublicIP"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"  # Changed from Dynamic to Static
+  sku                 = "Standard" # Added Standard SKU for static IP allocation
 }
 
 # Create a Ubuntu virtual machine
@@ -147,7 +149,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     storage_account_type = "Standard_LRS"
   }
 
-  computer_name  = var.vm_name
+  computer_name = var.vm_name
 
   source_image_reference {
     publisher = "Canonical"
@@ -155,9 +157,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
     sku       = "22_04-lts-gen2"
     version   = "latest"
   }
-  depends_on = [ azurerm_network_interface_security_group_association.attach_nsg, azurerm_public_ip.public_ip]
+  depends_on = [azurerm_network_interface_security_group_association.attach_nsg, azurerm_public_ip.public_ip]
 }
-#Created an installer for tpotce honeypot so now it is fully automated
+
+# Install and set up T-Pot honeypot with remote-exec provisioner
 resource "null_resource" "install_tpotce_honeypot" {
   depends_on = [
     azurerm_linux_virtual_machine.vm,
@@ -181,7 +184,6 @@ resource "null_resource" "install_tpotce_honeypot" {
       "hellohoney",
       "EOF",
       "sudo reboot"
-      
     ]
 
     connection {
@@ -192,4 +194,3 @@ resource "null_resource" "install_tpotce_honeypot" {
     }
   }
 }
- 
